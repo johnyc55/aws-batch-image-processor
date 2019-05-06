@@ -15,6 +15,11 @@ To get started, clone this repository locally:
 ```
 $ git clone https://github.com/jkahn117/aws-batch-image-processor.git
 ```
+The orignal version does not launch the lambda for you, the version below does:
+
+```
+$ git clone https://github.com/nmrad-91/aws-batch-image-processor.git
+```
 
 ### Prerequisites
 
@@ -57,6 +62,11 @@ $ docker build -t aws-batch-image-processor-sample .
 # tag the image
 $ docker tag aws-batch-image-processor-sample:latest <MY_REPO_NAME>:latest
 
+# log into the aws ecr repository
+eval $(aws ecr get-login --profile <MY_PROFILE> --no-include-email --region <MY_REGION> | sed 's|https://||')
+```
+If you are have a default profile and a default region, you can leave these two parameters out.
+```
 # push the image to the repository
 docker push <MY_REPO_NAME>:latest
 ```
@@ -76,11 +86,14 @@ $ aws s3 cp <MY_IMAGE> s3://<MY_BUCKET_NAME>
 
 ## Invoke Lambda to Submit Batch Job
 
-Finally, let's invoke our Lambda function to submit a new batch job.
+If you pulled from the nmrad-91 repository, the lambda function will start up and process your file. The command below will not work because the code has been altered to get the image name from the s3 event.
+
+If you pulled from the jkahn117 repository, it is time to invoke our Lambda function to submit a new batch job.
 
 ```
-$ aws lambda invoke aws-batch-image-processor-function \
-                    --payload '{"imageName": "reptile.jpg"}'
+$ aws lambda invoke \
+	--function-name aws-batch-image-processor-function \
+	--payload '{"imageName": "reptile.jpg"}'
 ```
 
 
@@ -107,6 +120,12 @@ When ready, it is easy to remove the resources created in this sample via Terraf
 $ terraform destroy
 ```
 
+## Thanks
+Thanks to Josh Kahn for the orignal work. If I knew how to do a pull request, I would send you my changes.
+
+Thanks also to pixabay.com for the image of the [iguana](https://pixabay.com/photos/iguana-white-background-reptile-1057830/).
+
 ## Authors
 
 * **Josh Kahn** - *initial work*
+* **Raul Dominguez** - *updates to include automatic execution from s3:ObjectCreated event*

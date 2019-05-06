@@ -1,6 +1,6 @@
 FROM amazonlinux:latest
 
-RUN yum update -y && yum install -y ruby && gem install bundler
+RUN yum update -y && yum install -y ruby && gem install bundler  -v '1.17.3'
 
 ENV APP_ROOT /usr/src/app
 RUN mkdir -p $APP_ROOT

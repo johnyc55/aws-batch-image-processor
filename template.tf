@@ -3,7 +3,7 @@
 #
 variable "aws_region" {
   description = "AWS region to launch sample"
-  default = "us-east-2"
+  default = "us-east-1"
 }
 
 
@@ -321,11 +321,31 @@ resource "aws_lambda_function" "submit-job-function" {
       JOB_DEFINITION = "${aws_batch_job_definition.image-processor-job.arn}"
       JOB_QUEUE = "${aws_batch_job_queue.image-processor.arn}"
       IMAGES_BUCKET = "${aws_s3_bucket.image-bucket.id}"
-      IMAGES_TABLE = "${aws_dynamodb_table.image-table.id}"
+      IMAGES_TABLE = "${aws_dynamodb_table.image-table.name}"
     }
   }
 }
 
+resource "aws_lambda_permission" "allow_bucket" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.submit-job-function.arn}"
+  principal     = "s3.amazonaws.com"
+  source_arn    = "${aws_s3_bucket.image-bucket.arn}"
+}
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = "${aws_s3_bucket.image-bucket.id}"
+  lambda_function {
+    id = "bucket_notification_to_lambda"
+    lambda_function_arn = "${aws_lambda_function.submit-job-function.arn}"
+    events = ["s3:ObjectCreated:*"]
+  }
+  depends_on = [
+    "aws_s3_bucket.image-bucket",
+    "aws_lambda_function.submit-job-function"
+  ]
+}
 
 #
 # OUTPUTS

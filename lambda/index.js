@@ -27,8 +27,8 @@ exports.handler = async (event) => {
       jobQueue: JOB_QUEUE,
       parameters: {
         bucketName: IMAGES_BUCKET,
-        imageName: event.imageName,
-        dynamoTable: IMAGES_BUCKET
+        imageName: event.Records[0].s3.object.key,
+        dynamoTable: IMAGES_TABLE
       }
     }
 
